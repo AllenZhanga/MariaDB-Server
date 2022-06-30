@@ -111,7 +111,7 @@ void Sort_param::init_for_filesort(TABLE *table, Filesort *filesort,
     addon_fields= get_addon_fields(table, sortlen, &addon_length,
                                    &m_packable_length);
   }
-  DBUG_ASSERT((using_addon_fields() == 0) ^ (addon_length == 0));
+  DBUG_ASSERT((using_addon_fields() == 0 || addon_length != 0));
 
   setup_lengths_and_limit(table, sortlen, addon_length, limit_rows_arg);
   accepted_rows= filesort->accepted_rows;
