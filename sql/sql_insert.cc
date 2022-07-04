@@ -2675,6 +2675,24 @@ TABLE *Delayed_insert::get_local_table(THD* client_thd)
       share->default_fields)
   {
     bool error_reported= FALSE;
+    /*
+      We have to restore USING HASH keys as they were modified
+      by the previous call of the parse_vcol_defs when
+      the 'table' was opened.
+    */
+    for (uint key_index= 0; key_index < table->s->keys; key_index++)
+    {
+      KEY *orig_key, *key= table->key_info + key_index;
+      if (key->algorithm != HA_KEY_ALG_LONG_HASH)
+        continue;
+      orig_key= table->s->key_info + key_index;
+      key->user_defined_key_parts= orig_key->user_defined_key_parts;
+      key->ext_key_parts= orig_key->ext_key_parts;
+      key->usable_key_parts= orig_key->usable_key_parts;
+      key->key_length= orig_key->key_length;
+      key->key_part-= key->user_defined_key_parts;
+    }
+
     if (unlikely(parse_vcol_defs(client_thd, client_thd->mem_root, copy,
                                  &error_reported,
                                  VCOL_INIT_DEPENDENCY_FAILURE_IS_WARNING)))
