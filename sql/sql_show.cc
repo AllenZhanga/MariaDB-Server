@@ -6056,9 +6056,10 @@ static int get_schema_column_record(THD *thd, TABLE_LIST *tables,
     uint col_access;
     check_access(thd,SELECT_ACL, db_name->str,
                  &tables->grant.privilege, 0, 0, MY_TEST(tables->schema_table));
-    col_access= get_column_grant(thd, &tables->grant,
-                                 db_name->str, table_name->str,
-                                 field->field_name.str) & COL_ACLS;
+    if (!is_temporary_table(tables))
+      col_access= get_column_grant(thd, &tables->grant,
+                                  db_name->str, table_name->str,
+                                  field->field_name.str) & COL_ACLS;
     if (!tables->schema_table && !col_access)
       continue;
     char *end= tmp;

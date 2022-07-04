@@ -181,4 +181,23 @@ GRANT USAGE ON *.* TO `test-user`@`%`
 SET DEFAULT ROLE `r``o'l"e` FOR `test-user`@`%`
 DROP ROLE `r``o'l"e`;
 DROP USER 'test-user';
+#
+# MDEV-28455: CREATE TEMPORARY TABLES privilege
+#            is insufficient for SHOW COLUMNS
+#
+create database db;
+create user user_temporary@localhost;
+grant create temporary tables on db.* to user_temporary@localhost;
+connect  con1,localhost,user_temporary,,db;
+create temporary table tmp (a int, key(a));
+show index in tmp;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment
+tmp	1	a	1	a	A	NULL	NULL	NULL	YES	BTREE		
+show columns in tmp;
+Field	Type	Null	Key	Default	Extra
+a	int(11)	YES	MUL	NULL	
+connection default;
+disconnect con1;
+drop database db;
+drop user user_temporary@localhost;
 # End of 10.3 tests

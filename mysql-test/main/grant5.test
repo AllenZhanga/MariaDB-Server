@@ -135,4 +135,24 @@ SHOW GRANTS FOR 'test-user';
 DROP ROLE `r``o'l"e`;
 DROP USER 'test-user';
 
+--echo #
+--echo # MDEV-28455: CREATE TEMPORARY TABLES privilege
+--echo #            is insufficient for SHOW COLUMNS
+--echo #
+
+create database db;
+create user user_temporary@localhost;
+grant create temporary tables on db.* to user_temporary@localhost;
+
+--connect (con1,localhost,user_temporary,,db)
+create temporary table tmp (a int, key(a));
+show index in tmp;
+show columns in tmp;
+
+--connection default
+--disconnect con1
+# Cleanup
+drop database db;
+drop user user_temporary@localhost;
+
 --echo # End of 10.3 tests
